@@ -1,0 +1,17 @@
+{
+  "name": "llama-jev",
+  "version": "0.0.0",
+  "author": "Amine Ben hammou (@webneat)",
+  "type": "module",
+  "main": "src/main.ts",
+  "packageManager": "pnpm@12.4.2",
+  "engines": {
+    "node": ">=26.9.0"
+  },
+  "devDependencies": {
+    "@total-typescript/tsconfig": "^1.0.4",
+    "@types/node": "^26.6.1",
+    "prettier": "^3.9.7",
+    "typescript": "^7.0.2"
+  }
+}
