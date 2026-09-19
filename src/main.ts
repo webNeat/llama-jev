@@ -16,7 +16,8 @@ type Question = {
   instructions: string
   choices: Record<string, string>
 }
-async function jev(state: string, question: Question) {
+type Answer = Record<string, number | undefined>
+async function jev_answer(state: string, question: Question) {
   const prompt = [state, `\n---\n`, `Question: ${question.instructions}\n`, `Choices:`]
   const choices = Object.entries(question.choices)
   let n = 1
@@ -26,7 +27,7 @@ async function jev(state: string, question: Question) {
   }
   prompt.push(`\nNumber of the correct choice: `)
   const probs = await next_token_probs(prompt.join(`\n`), 10)
-  const answer: Record<string, number | undefined> = {}
+  const answer: Answer = {}
   for (let i = 0; i < choices.length; i++) {
     const n = i + 1
     const [choice] = choices[i]!
@@ -35,24 +36,36 @@ async function jev(state: string, question: Question) {
   return answer
 }
 
+async function jev(state: string, questions: Record<string, Question>) {
+  const entries = Object.entries(questions)
+  const results = await Promise.all(entries.map(([_, question]) => jev_answer(state, question)))
+  const answers: Record<string, Answer> = {}
+  for (let i = 0; i < entries.length; i++) {
+    const [name] = entries[i]!
+    answers[name] = results[i]!
+  }
+  return answers
+}
+
 const state =
   "Our API integration started returning 500 errors on every request about 20 minutes ago, and we can't process any customer orders until this is fixed."
 
 const start = performance.now()
-const department = await jev(state, {
-  instructions: 'Which team should handle this',
-  choices: {
-    billing: 'Payment or subscription issues',
-    technical: 'Bugs or integration problems',
-    sales: 'Pricing or account questions',
+const res = await jev(state, {
+  department: {
+    instructions: 'Which team should handle this',
+    choices: {
+      billing: 'Payment or subscription issues',
+      technical: 'Bugs or integration problems',
+      sales: 'Pricing or account questions',
+    },
   },
-})
-
-const is_urgent = await jev(state, {
-  instructions: 'The message conveys urgency or time-sensitivity',
-  choices: { yes: '', no: '' },
+  is_urgent: {
+    instructions: 'The message conveys urgency or time-sensitivity',
+    choices: { yes: '', no: '' },
+  },
 })
 const duration = Math.floor(performance.now() - start)
 
 console.log(duration)
-console.log(JSON.stringify({ department, is_urgent }, null, 2))
+console.log(JSON.stringify(res, null, 2))

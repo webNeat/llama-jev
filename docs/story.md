@@ -4,6 +4,7 @@
 - **OS:** Ubuntu 25.10
 - **Inference:** `llama.cpp`
 - **Programming language:** Typescript, I may switch to another language if needed later
+- **LLM:** `minicpm5-2b-q8` with `LLAMA_CTX=262144` and `LLAMA_PARALLEL=8` which gives 8 parallel instances with 32k context each
 
 # Step 1: Definitions and mental model
 
@@ -278,3 +279,26 @@ console.log({department, is_urgent})
   }
 }
 ```
+
+# Step 4: Handling multiple questions in parallel
+
+The easiest way to handle multiple questions is to call the `next_token_probs` function concurrently for each question then collect the answers.
+With that change, the code is:
+```ts
+const res = await jev(state, {
+  department: {
+    instructions: 'Which team should handle this',
+    choices: {
+      billing: 'Payment or subscription issues',
+      technical: 'Bugs or integration problems',
+      sales: 'Pricing or account questions',
+    },
+  },
+  is_urgent: {
+    instructions: 'The message conveys urgency or time-sensitivity',
+    choices: { yes: '', no: '' },
+  },
+})
+```
+
+It prints the same results as above and takes **80ms**
