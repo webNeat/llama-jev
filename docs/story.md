@@ -42,7 +42,7 @@ For me `jev` is a black box that takes some `state` and a list of classification
 - A classification question can be:
   - A true/false question, in which case the answer is the probability of the answer being `true`
   - A multiple choices question, in which case the answer is the probabilities of choices being correct
-  - A scoring question, which in my opinion is very similar to a true/false question
+  - A scoring question, which I don't fully understand.
 - The answer of each question also includes a percentage showing how confident is the model
 
 On the rest of this experiment, I will be focusing on the multiple choices question type, because I think the other two types can be derived from it or implemented in similar way.
@@ -144,3 +144,137 @@ After restarting the server (to clear the KV cache) and running the snippet abov
 ```
 
 So the first request with no cache takes 46ms, and subsequent requests take 16ms.
+
+# Step 3: First `jev` implementation
+
+Let's implement the first version of the `jev` classifier, it will take a single multi-choice question and return the choices probabilities.
+
+```ts
+type Question = {
+  instructions: string
+  choices: Record<string, string>
+}
+async function jev(state: string, question: Question) {...}
+```
+
+The first idea I have is to use the `next_token_probs` function we implemented earlier with the following prompt:
+
+```
+${state}
+---
+Question: ${question.instructions}
+Answer:
+```
+
+And check the probabilities of the given choices inside the returned probabilities. But here are the issues with this approach:
+1. Let's say I set `n_probs = 100`, then there is no garantee that the given `question.choices` will be part of the returned top 100 tokens
+2. Some given `question.choices` may not fit on a single token
+
+As an attempt to work around these issues, let's rewrite the prompt to:
+```
+${state}
+
+---
+
+Question: ${question.instructions}
+
+Choices:
+  1. ${choices 1}: ${description of choice 1}
+  2. ${choices 2}: ${description of choice 2}
+  3. ${choices 3}: ${description of choice 3}
+
+Number of the correct choice:
+```
+
+This should force the model to suggest `1`, `2` or `3` as the next token.
+
+I implemented the `jev` function with this last prompt and made it return the probabilities of the top 10 tokens, here is an example:
+
+_Code call_
+```ts
+await jev(
+  "Our API integration started returning 500 errors on every request about 20 minutes ago, and we can't process any customer orders until this is fixed.",
+  {
+    instructions: 'Which team should handle this',
+    choices: {
+      billing: 'Payment or subscription issues',
+      technical: 'Bugs or integration problems',
+      sales: 'Pricing or account questions',
+    },
+  }
+)
+```
+
+_prompt_
+```
+Our API integration started returning 500 errors on every request about 20 minutes ago, and we can't process any customer orders until this is fixed.
+
+---
+
+Question: Which team should handle this
+
+Choices:
+  1. billing: Payment or subscription issues
+  2. technical: Bugs or integration problems
+  3. sales: Pricing or account questions
+
+Number of the correct choice: 
+```
+
+_probabilities of next token_
+```json
+{
+  "0": 0.00025871295978876374,
+  "1": 0.2758248382478804,
+  "2": 0.685222093120562,
+  "3": 0.03817516278429753,
+  "4": 0.00042943882754722425,
+  "5": 0.000033590968600205436,
+  "6": 0.00001288515479935798,
+  "7": 0.00000785177267960736,
+  "9": 0.0000040027582244881494,
+  " ?\n": 0.000003914160768610566
+}
+```
+
+Which means:
+- billing: 27.5%
+- technical: 68.5%
+- sales: 3.8%
+
+Oh, this seems to work correctly, at least for this example, even with my small **2b Q8 model** :) and it took **80ms without cache and 40ms with cache**
+
+Now let's make the `jev` function return the choices probabilities, now we can write code like the following:
+```ts
+const state = "Our API integration started returning 500 errors on every request about 20 minutes ago, and we can't process any customer orders until this is fixed."
+
+const department = await jev(state, {
+  instructions: 'Which team should handle this',
+  choices: {
+    billing: 'Payment or subscription issues',
+    technical: 'Bugs or integration problems',
+    sales: 'Pricing or account questions',
+  },
+})
+
+const is_urgent = await jev(state, {
+  instructions: 'The message conveys urgency or time-sensitivity',
+  choices: { yes: '', no: '' },
+})
+
+console.log({department, is_urgent})
+```
+
+```json
+{
+  "department": {
+    "billing": 0.2777646287584465,
+    "technical": 0.6819939599746903,
+    "sales": 0.039515127307207853
+  },
+  "is_urgent": {
+    "yes": 0.9290248162812628,
+    "no": 0.07008685505786921
+  }
+}
+```
