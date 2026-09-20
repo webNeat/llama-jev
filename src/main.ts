@@ -16,8 +16,12 @@ type Question = {
   instructions: string
   choices: Record<string, string>
 }
-type Answer = Record<string, number | undefined>
+type Answer = {
+  probabilities: Record<string, number | undefined>
+  confidence: number
+}
 async function jev_answer(state: string, question: Question) {
+  question.choices['not sure'] = 'I am not confident'
   const prompt = [state, `\n---\n`, `Question: ${question.instructions}\n`, `Choices:`]
   const choices = Object.entries(question.choices)
   let n = 1
@@ -27,11 +31,22 @@ async function jev_answer(state: string, question: Question) {
   }
   prompt.push(`\nNumber of the correct choice: `)
   const probs = await next_token_probs(prompt.join(`\n`), 10)
-  const answer: Answer = {}
+  const answer: Answer = {
+    probabilities: {},
+    confidence: 0,
+  }
+  let total_probs = 0
   for (let i = 0; i < choices.length; i++) {
     const n = i + 1
     const [choice] = choices[i]!
-    answer[choice] = probs[n]
+    if (choice === 'not sure') answer.confidence = 1 - probs[n]!
+    else {
+      answer.probabilities[choice] = probs[n]
+      total_probs += probs[n]!
+    }
+  }
+  for (const name of Object.keys(answer.probabilities)) {
+    answer.probabilities[name]! /= total_probs
   }
   return answer
 }

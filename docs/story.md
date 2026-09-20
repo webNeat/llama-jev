@@ -302,3 +302,28 @@ const res = await jev(state, {
 ```
 
 It prints the same results as above and takes **80ms**
+
+# Step 5: Adding confidence
+
+Now we need to add a confidence score to the answers, one way to do it is by adding a "I am not sure" and compute the confidence as `1 - unsure_probability`. Another way is to give the probabilities to the model and ask about its confidence directly.
+I went with the first way because it's faster. Here is the response for the same questions above:
+```json
+{
+  "department": {
+    "probabilities": {
+      "billing": 0.12924113592660363,
+      "technical": 0.861768163860543,
+      "sales": 0.008990700212853416
+    },
+    "confidence": 0.9954878538770867
+  },
+  "is_urgent": {
+    "probabilities": {
+      "yes": 0.7520748161640421,
+      "no": 0.24792518383595785
+    },
+    "confidence": 0.9722152289381157
+  }
+}
+```
+
