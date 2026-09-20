@@ -1,6 +1,10 @@
 {
-  "extends": "@total-typescript/tsconfig/bundler/no-dom",
   "compilerOptions": {
+    "target": "ES2024",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "types": ["node"]
   },
   "include": ["src", "tests"],

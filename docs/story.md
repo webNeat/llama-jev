@@ -327,3 +327,41 @@ I went with the first way because it's faster. Here is the response for the same
 }
 ```
 
+# Step 6: Creating an HTTP API
+
+if I want to compare this implementation to `jev` API, I need to create a similar API. I will only try to match the simple choices questions API for now.
+```ts
+'POST /'
+
+type Request = {
+  state: string
+  model: string
+  questions: Record<string, {
+    type: 'choice'
+    instructions: string
+    criteria: Record<string, string | null>
+  }>
+}
+
+type Response = {
+  model: string
+  answers: Record<string, {
+    type: 'choice'
+    choice: string
+    probabilities: Record<string, number>
+    confidence: number
+  }>
+}
+```
+
+Since I don't need routing or anything fancy, I will just use the native HTTP server API of Nodejs. And I choose to use `typia` for validation because it seems to be the fastest (even if it requires to use `ttsc` instead of `tsc` to compile the code).
+
+After implementing the endpoint, I tested it out and the performance is very similar to before, the request is taking about **80ms**
+
+I have also learned many things today:
+
+1. I can't run a benchmark against jev API and compare it with my own results, their [Master customer agreement](https://typesafe.ai/legal/mca) seems to deny it. Luckily I didn't use their API yet and will not be using it for this experiment
+2. People all around the world are trying to reproduce this API and many open source attempts appeared already
+3. There is a [Jev-class models](https://benchmarkheaven.com/jev-models) benchmark and leaderboard, it would be interesting to submit my solution once it's ready and see how well it will do, I don't expect much but worth trying.
+
+So my next step will be to implement other questions types (`noul` and `score`) then check it against the public dataset of the benchmark.
