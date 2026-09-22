@@ -1,1 +1,6 @@
 node_modules
+bench/
+dist
+__pycache__
+.pnpm-store
+AGENTS.md

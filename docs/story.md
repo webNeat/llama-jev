@@ -358,10 +358,78 @@ Since I don't need routing or anything fancy, I will just use the native HTTP se
 
 After implementing the endpoint, I tested it out and the performance is very similar to before, the request is taking about **80ms**
 
-I have also learned many things today:
+# Step 7: News
+
+I have the following today:
 
 1. I can't run a benchmark against jev API and compare it with my own results, their [Master customer agreement](https://typesafe.ai/legal/mca) seems to deny it. Luckily I didn't use their API yet and will not be using it for this experiment
 2. People all around the world are trying to reproduce this API and many open source attempts appeared already
 3. There is a [Jev-class models](https://benchmarkheaven.com/jev-models) benchmark and leaderboard, it would be interesting to submit my solution once it's ready and see how well it will do, I don't expect much but worth trying.
 
 So my next step will be to implement other questions types (`noul` and `score`) then check it against the public dataset of the benchmark.
+
+# Step 8: Making the API fully compatible with `jev` API
+
+Now my API is missing the following parts:
+
+1. The route should be `POST /v1/systemone` instead of `POST /`
+2. Handling `noul` questions
+3. Handling `score` questions
+4. Handling structured data in `state`, `instructions` and `criteria`
+5. Returning tokens usage in the response
+6. Handling more then 9 choices (numbers like `10`, `11`, ... may not fit in a single token!)
+
+I will start by addressing point 1 to 4 that are required to run the benchmark.
+
+**Handling `noul` questions:** 
+
+I will implement the `noul` as a `choice` with options `Yes` and `No`.
+
+**Handling `score` questions:**
+
+I will also implement `score` as a `choice` by using the levels as the options then computing the weighted avergae based on the probabilities.
+
+**Handling structured `state`, `instructions` and `criteria`**
+
+I will just stringify the data as JSON and use it in the prompt.
+
+# Step 9: First run of the benchmark
+
+After implementing those improvements, it's time to run the benchmark. And since I will be running it multiple times, I created a `bench.py` script to run it and summarize the scores. Here are the scores of `minicpm5:2b-q8`:
+
+```yaml
+easy:
+  intelligence: 85.4
+  calibration: 80.9
+  speed: 92.2
+  score: 86.0
+standard:
+  intelligence: 17.3
+  calibration: 46.1
+  speed: 92.2
+  score: 5.0
+hard:
+  intelligence: 13.1
+  calibration: 34.8
+  speed: 81.9
+  score: 2.3
+global:
+  intelligence: 28.8
+  calibration: 54.3
+  speed: 85.0
+  score: 17.0
+```
+
+There are 3 public datasets `easy` (48 tests), `standard` (72 tests) and `hard` (111 tests). `global` combines all 231 tests. Here is my simple understanding of the scores (I didn't go deeper on how they are actually computed):
+- `intelligence` is how many answers are correct after correcting for random answers
+- `calibration` is how much the `confidence` matches the answers
+- `speed` is how fast responses are sent. Since my server is running locally, my measured times are adjusted by the benchmark to simulate a busy production server.
+- `score` combines the three above into one number, with an extra penalty when intelligence is below 50
+
+**Notes of these first results:**
+- The API works correctly, there are no failures due to response structure or server errors
+- This small model is very good for easy tasks
+- The accuracy of the model falls down on standard and hard tasks
+
+Overall these are good results given the simple implementation, the next step is to try some ways to improve the scores of this model and to try bigger/smarter models.
+

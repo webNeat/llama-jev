@@ -6,7 +6,8 @@
   "main": "src/main.ts",
   "scripts": {
     "build": "ttsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "bench": "python3 bench.py"
   },
   "packageManager": "pnpm@12.4.2",
   "engines": {

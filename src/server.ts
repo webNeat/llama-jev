@@ -7,7 +7,7 @@ const isRequest = typia.createIs<Request>()
 
 export const server = createServer(async (req, res) => {
   try {
-    if (req.method === 'POST' && req.url === '/') {
+    if (req.method === 'POST' && req.url === '/v1/systemone') {
       const body = await json(req)
       if (!isRequest(body)) throw new Error(`Invalid request body`)
       return sendJson(res, await jev(body))
