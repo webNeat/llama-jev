@@ -1,5 +1,4 @@
 import json
-import math
 import subprocess
 import sys
 from pathlib import Path
@@ -75,18 +74,28 @@ def score_results(results_path):
     stem = Path(task_path).stem
     tier_tasks[tier_names.get(stem, stem)] = load_jsonl(str(jevbench_dir / task_path))
 
-  tier_metrics = {tier: metric(tasks, results) for tier, tasks in tier_tasks.items()}
-  tier_chances = {tier: sum(1 / len(task.labels) for task in tasks) / len(tasks) for tier, tasks in tier_tasks.items()}
+  scored_tasks = {}
+  for tier, tasks in tier_tasks.items():
+    if tier == 'standard' and 'easy' in tier_tasks:
+      scored_tasks['easy + standard'] = tier_tasks['easy'] + tasks
+    else:
+      scored_tasks[tier] = tasks
+
   scores = {}
-  for tier, metrics in tier_metrics.items():
-    intel = chance_corrected_accuracy(metrics['accuracy'], tier_chances[tier]) if metrics['accuracy'] is not None else None
+  for tier, tasks in scored_tasks.items():
+    metrics = metric(tasks, results)
+    intel = chance_corrected_accuracy(metrics['accuracy'], guess_rate(tasks)) if metrics['accuracy'] is not None else None
     scores[tier] = score_axes(metrics, intel)
 
   global_metrics = metric([task for tasks in tier_tasks.values() for task in tasks], results)
-  accuracies = {tier: metrics['accuracy'] for tier, metrics in tier_metrics.items() if metrics['accuracy'] is not None}
+  tier_chances = {tier: guess_rate(tasks) for tier, tasks in tier_tasks.items()}
+  accuracies = {tier: metric(tasks, results)['accuracy'] for tier, tasks in tier_tasks.items()}
   global_intel = intelligence(accuracies, tier_chances)
   scores['global'] = score_axes(global_metrics, global_intel)
   return {tier: {k: round(v, 1) if isinstance(v, float) else v for k, v in entry.items()} for tier, entry in scores.items()}
+
+def guess_rate(tasks):
+  return sum(1 / len(task.labels) for task in tasks) / len(tasks)
 
 def score_axes(metrics, intel):
   from jevbench.composite_v13 import calibration, speed
@@ -96,11 +105,8 @@ def score_axes(metrics, intel):
   return {'intelligence': intel, 'calibration': cal, 'speed': spd, 'score': combined_score(intel, cal, spd)}
 
 def combined_score(intel, cal, spd):
-  from jevbench.composite_v13 import near_chance_multiplier
-
-  values = [max(v, 1.0) for v in (intel, cal, spd) if v is not None]
-  if not values:
+  if intel is None or cal is None or spd is None:
     return None
-  return math.exp(sum(math.log(v) for v in values) / len(values)) * near_chance_multiplier(intel)
+  return (intel + cal + spd) / 3
 
 main()

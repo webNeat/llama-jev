@@ -402,22 +402,22 @@ easy:
   intelligence: 85.4
   calibration: 80.9
   speed: 92.2
-  score: 86.0
-standard:
-  intelligence: 17.3
-  calibration: 46.1
+  score: 86.2
+easy + standard:
+  intelligence: 45.2
+  calibration: 70.5
   speed: 92.2
-  score: 5.0
+  score: 69.3
 hard:
   intelligence: 13.1
   calibration: 34.8
   speed: 81.9
-  score: 2.3
+  score: 43.3
 global:
   intelligence: 28.8
   calibration: 54.3
   speed: 85.0
-  score: 17.0
+  score: 56.0
 ```
 
 There are 3 public datasets `easy` (48 tests), `standard` (72 tests) and `hard` (111 tests). `global` combines all 231 tests. Here is my simple understanding of the scores (I didn't go deeper on how they are actually computed):
