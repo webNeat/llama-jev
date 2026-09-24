@@ -397,27 +397,13 @@ I will just stringify the data as JSON and use it in the prompt.
 
 After implementing those improvements, it's time to run the benchmark. And since I will be running it multiple times, I created a `bench.py` script to run it and summarize the scores. Here are the scores of `minicpm5:2b-q8`:
 
-```yaml
-easy:
-  intelligence: 85.4
-  calibration: 80.9
-  speed: 92.2
-  score: 86.2
-easy + standard:
-  intelligence: 45.2
-  calibration: 70.5
-  speed: 92.2
-  score: 69.3
-hard:
-  intelligence: 13.1
-  calibration: 34.8
-  speed: 81.9
-  score: 43.3
-global:
-  intelligence: 28.8
-  calibration: 54.3
-  speed: 85.0
-  score: 56.0
+```
+Dataset          Intelligence  Calibration  Speed  Score
+---------------  ------------  -----------  -----  -----
+easy                     85.4         81.0   89.7   85.4
+easy + standard          45.2         70.4   89.2   68.3
+hard                     13.1         35.6   75.3   41.3
+global                   28.8         54.1   79.9   54.3
 ```
 
 There are 3 public datasets `easy` (48 tests), `standard` (72 tests) and `hard` (111 tests). `global` combines all 231 tests. Here is my simple understanding of the scores (I didn't go deeper on how they are actually computed):

@@ -49,19 +49,31 @@ def main():
 
   sys.path.insert(0, str(jevbench_dir))
   scores = score_results(results_path)
-  scores_yaml = format_yaml(scores)
-  (output_dir / 'score.yaml').write_text(scores_yaml + '\n', encoding='utf-8')
-  print(scores_yaml)
+  (output_dir / 'score.md').write_text(format_table(scores) + '\n', encoding='utf-8')
+  print(format_terminal(scores))
   print(f'Results: {output_dir}')
   raise SystemExit(run_result.returncode)
 
-def format_yaml(data):
-  lines = []
+def format_table(data):
+  lines = [
+    '| Dataset | Intelligence | Calibration | Speed | Score |',
+    '| --- | --- | --- | --- | --- |',
+  ]
   for tier, entry in data.items():
-    lines.append(f'{tier}:')
-    for key, value in entry.items():
-      lines.append(f'  {key}: {"null" if value is None else value}')
+    lines.append('| ' + ' | '.join(score_cells(tier, entry)) + ' |')
   return '\n'.join(lines)
+
+def format_terminal(data):
+  header = ['Dataset', 'Intelligence', 'Calibration', 'Speed', 'Score']
+  rows = [score_cells(tier, entry) for tier, entry in data.items()]
+  widths = [max(len(row[i]) for row in [header] + rows) for i in range(len(header))]
+  lines = []
+  for row in [header, ['-' * width for width in widths]] + rows:
+    lines.append('  '.join(cell.rjust(widths[i]) if i else cell.ljust(widths[i]) for i, cell in enumerate(row)).rstrip())
+  return '\n'.join(lines)
+
+def score_cells(tier, entry):
+  return [tier] + ['null' if value is None else str(value) for value in entry.values()]
 
 def score_results(results_path):
   from jevbench.composite_v13 import chance_corrected_accuracy, intelligence
