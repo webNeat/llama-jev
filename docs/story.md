@@ -419,3 +419,39 @@ There are 3 public datasets `easy` (48 tests), `standard` (72 tests) and `hard` 
 
 Overall these are good results given the simple implementation, the next step is to try some ways to improve the scores of this model and to try bigger/smarter models.
 
+# Step 10: Benchmark updated
+
+The [JevBench](https://benchmarkheaven.com/jev-models) is evolving quickly and has released version 1.4.2 that changed the leaderboard and details I can have about the `jev` run. I updated the `bench.py` script and README accordingly.
+I have also added cost estimation based on [rental pricing on Strix halo machine](https://gpurack.net/pricing).
+
+Then I run the benchmark against 3 models: `minicpm5-2b-q8`, `qwen3.6-35b-a3b-q6` and `qwen3.8-27b-q6`:
+
+**minicpm5-2b-q8**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy          89.6          85.4         81.0        83.2   91.4  78.1     0.0054         83.7
+standard      43.1          17.3         46.0        31.7   90.9  77.5     0.0056          4.7
+hard          42.3          13.1         35.5        24.3   79.6  53.6     0.0351          2.0
+public        52.4          28.8         35.5        32.2   82.4  61.1     0.0197         14.6
+```
+
+**qwen3.6-35b-a3b-q6**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy          97.9          97.1         89.0        93.0   81.9  56.3     0.0286         77.7
+standard      77.8          67.7         73.5        70.6   82.0  55.9     0.0296         68.4
+hard          51.4          26.7         42.8        34.7   68.1  35.1     0.1452          5.4
+public        69.3          56.4         42.8        49.6   72.3  42.1     0.0849         36.1
+```
+
+**qwen3.8-27b-q6**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy          75.0          65.1         70.0        67.5   77.0  49.3     0.0491         61.7
+standard      68.1          53.6         48.0        50.8   76.6  48.4     0.0524         51.2
+hard          33.3           0.0         14.3         7.1   59.7  21.7     0.4089          0.0
+public        52.8          33.5         14.3        23.9   64.5  29.5     0.2230          4.2
+```

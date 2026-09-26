@@ -13,32 +13,53 @@ I created this repository as an experiment to implement a [jev](https://typesafe
 
 # Current results
 
-I am using the [JevBench](https://benchmarkheaven.com/jev-models) **public tests** to evaluate the implementation locally on a Strix Halo GPU.
+I use the 231 downloadable [JevBench](https://benchmarkheaven.com/jev-models) tasks to evaluate this implementation locally on a Strix Halo GPU.
 
-_score = (intelligence + calibration + speed) / 3_
+Public accuracy is the only direct comparison available against [JevBench v1.4.2's published results](https://github.com/fstandhartinger/jevbench/blob/main/results/v1.4.2/jevbench-v1.4.2-results.json):
 
-**jev** (scores from the benchmark leaderboard for reference, they include hidden tasks)
+| System                         | Correct public tasks | Public accuracy |
+| ------------------------------ | -------------------: | --------------: |
+| Jev 1.13.0                     |              200/231 |           86.6% |
+| minicpm5-2b Q8 (llama-jev)     |              121/231 |           52.4% |
+| qwen3.6-35b-a3b Q6 (llama-jev) |              160/231 |           69.3% |
+| qwen3.8-27b Q6 (llama-jev)     |              122/231 |           52.8% |
 
-| Dataset  | Intelligence | Calibration | Speed | Score |
-| -------- | ------------ | ----------- | ----- | ----- |
-| easy     | 100          | 83          | 83    | 88.3  |
-| easy + standard | 99         | 83        | 83  | 88   |
-| hard     | 61         | 83        | 83  | 74.6   |
-| global   | 86         | 83        | 83  | 83.9  |
+## Jev leaderboard scores
 
+| System     | Intelligence | Calibration | Capability | Speed | Cost |    $/1k | JevBench Score |
+| ---------- | -----------: | ----------: | ---------: | ----: | ---: | ------: | -------------: |
+| Jev 1.13.0 |         53.1 |        76.3 |       64.7 |  83.3 | 52.0 | $0.0399 |           63.3 |
 
-**minicpm5-2b Q8:**
+## llama-jev public-dataset scores
 
-| Dataset  | Intelligence | Calibration | Speed | Score |
-| -------- | ------------ | ----------- | ----- | ----- |
-| easy     | 85.4         | 80.9        | 92.2  | 86.2  |
-| easy + standard | 45.2  | 70.5        | 92.2  | 69.3  |
-| hard     | 13.1         | 34.8        | 81.9  | 43.3  |
-| global   | 28.8         | 54.3        | 85.0  | 56.0  |
+**minicpm5-2b-q8**
 
-_Note: the speed is adjusted for local run `latency = local_latency_seconds * 2.0 + 0.15`_
+| Public dataset | Intelligence | Calibration | Capability | Speed | Cost | $/1k est. | Score proxy |
+| -------------- | -----------: | ----------: | ---------: | ----: | ---: | --------: | ----------: |
+| Easy           |         85.4 |        81.0 |       83.2 |  91.4 | 78.1 |   $0.0054 |        83.7 |
+| Standard       |         17.3 |        46.0 |       31.7 |  90.9 | 77.5 |   $0.0056 |         4.7 |
+| Hard           |         13.1 |        35.5 |       24.3 |  79.6 | 53.6 |   $0.0351 |         2.0 |
+| All public     |         28.8 |        35.5 |       32.2 |  82.4 | 61.1 |   $0.0197 |        14.6 |
 
-_I will add results for other models soon_
+**qwen3.6-35b-a3b-q6**
+
+| Public dataset | Intelligence | Calibration | Capability | Speed | Cost | $/1k est. | Score proxy |
+| -------------- | -----------: | ----------: | ---------: | ----: | ---: | --------: | ----------: |
+| Easy           |         97.1 |        89.0 |       93.0 |  81.9 | 56.3 |   $0.0286 |        77.7 |
+| Standard       |         67.7 |        73.5 |       70.6 |  82.0 | 55.9 |   $0.0296 |        68.4 |
+| Hard           |         26.7 |        42.8 |       34.7 |  68.1 | 35.1 |   $0.1452 |         5.4 |
+| All public     |         56.4 |        42.8 |       49.6 |  72.3 | 42.1 |   $0.0849 |        36.1 |
+
+**qwen3.8-27b-q6**
+
+| Public dataset | Intelligence | Calibration | Capability | Speed | Cost | $/1k est. | Score proxy |
+| -------------- | -----------: | ----------: | ---------: | ----: | ---: | --------: | ----------: |
+| Easy           |         65.1 |        70.0 |       67.5 |  77.0 | 49.3 |   $0.0491 |        61.7 |
+| Standard       |         53.6 |        48.0 |       50.8 |  76.6 | 48.4 |   $0.0524 |        51.2 |
+| Hard           |          0.0 |        14.3 |        7.1 |  59.7 | 21.7 |   $0.4089 |         0.0 |
+| All public     |         33.5 |        14.3 |       23.9 |  64.5 | 29.5 |   $0.2230 |         4.2 |
+
+_Note: The local cost estimate uses a [Strix Halo rental reference](https://gpurack.net/pricing) and the active request time_
 
 # Next steps
 
