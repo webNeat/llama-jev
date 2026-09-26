@@ -20,9 +20,9 @@ Public accuracy is the only direct comparison available against [JevBench v1.4.2
 | System                         | Correct public tasks | Public accuracy |
 | ------------------------------ | -------------------: | --------------: |
 | Jev 1.13.0                     |              200/231 |           86.6% |
-| minicpm5-2b Q8 (llama-jev)     |              121/231 |           52.4% |
-| qwen3.6-35b-a3b Q6 (llama-jev) |              160/231 |           69.3% |
-| qwen3.8-27b Q6 (llama-jev)     |              122/231 |           52.8% |
+| minicpm5-2b Q8 (llama-jev)     |              149/231 |           64.5% |
+| qwen3.6-35b-a3b Q6 (llama-jev) |              191/231 |           82.7% |
+| qwen3.8-27b Q6 (llama-jev)     |              198/231 |           85.7% |
 
 ## Jev leaderboard scores
 
@@ -36,28 +36,28 @@ Public accuracy is the only direct comparison available against [JevBench v1.4.2
 
 | Public dataset | Intelligence | Calibration | Capability | Speed | Cost | $/1k est. | Score proxy |
 | -------------- | -----------: | ----------: | ---------: | ----: | ---: | --------: | ----------: |
-| Easy           |         85.4 |        81.0 |       83.2 |  91.4 | 78.1 |   $0.0054 |        83.7 |
-| Standard       |         17.3 |        46.0 |       31.7 |  90.9 | 77.5 |   $0.0056 |         4.7 |
-| Hard           |         13.1 |        35.5 |       24.3 |  79.6 | 53.6 |   $0.0351 |         2.0 |
-| All public     |         28.8 |        35.5 |       32.2 |  82.4 | 61.1 |   $0.0197 |        14.6 |
+| Easy           |         97.1 |        96.6 |       96.9 |  90.7 | 77.1 |   $0.0058 |        89.6 |
+| Standard       |         51.6 |        48.3 |       50.0 |  90.6 | 76.6 |   $0.0060 |        62.3 |
+| Hard           |         22.6 |        23.5 |       23.0 |  79.2 | 53.0 |   $0.0370 |         6.9 |
+| All public     |         48.4 |        23.5 |       35.9 |  82.0 | 60.4 |   $0.0208 |        40.7 |
 
 **qwen3.6-35b-a3b-q6**
 
 | Public dataset | Intelligence | Calibration | Capability | Speed | Cost | $/1k est. | Score proxy |
 | -------------- | -----------: | ----------: | ---------: | ----: | ---: | --------: | ----------: |
-| Easy           |         97.1 |        89.0 |       93.0 |  81.9 | 56.3 |   $0.0286 |        77.7 |
-| Standard       |         67.7 |        73.5 |       70.6 |  82.0 | 55.9 |   $0.0296 |        68.4 |
-| Hard           |         26.7 |        42.8 |       34.7 |  68.1 | 35.1 |   $0.1452 |         5.4 |
-| All public     |         56.4 |        42.8 |       49.6 |  72.3 | 42.1 |   $0.0849 |        36.1 |
+| Easy           |        100.0 |        99.9 |      100.0 |  79.3 | 51.3 |   $0.0420 |        76.8 |
+| Standard       |         91.9 |        94.0 |       93.0 |  79.3 | 51.1 |   $0.0427 |        74.5 |
+| Hard           |         51.1 |        67.4 |       59.3 |  67.3 | 33.8 |   $0.1613 |        23.1 |
+| All public     |         76.5 |        67.4 |       72.0 |  71.0 | 40.1 |   $0.0995 |        38.3 |
 
 **qwen3.8-27b-q6**
 
 | Public dataset | Intelligence | Calibration | Capability | Speed | Cost | $/1k est. | Score proxy |
 | -------------- | -----------: | ----------: | ---------: | ----: | ---: | --------: | ----------: |
-| Easy           |         65.1 |        70.0 |       67.5 |  77.0 | 49.3 |   $0.0491 |        61.7 |
-| Standard       |         53.6 |        48.0 |       50.8 |  76.6 | 48.4 |   $0.0524 |        51.2 |
-| Hard           |          0.0 |        14.3 |        7.1 |  59.7 | 21.7 |   $0.4089 |         0.0 |
-| All public     |         33.5 |        14.3 |       23.9 |  64.5 | 29.5 |   $0.2230 |         4.2 |
+| Easy           |        100.0 |        99.9 |      100.0 |  71.9 | 39.6 |   $0.1034 |        42.3 |
+| Standard       |         96.0 |        93.3 |       94.6 |  70.9 | 38.7 |   $0.1106 |        39.2 |
+| Hard           |         57.9 |        79.0 |       68.4 |  59.0 | 20.5 |   $0.4453 |         7.1 |
+| All public     |         80.9 |        79.0 |       79.9 |  62.6 | 27.1 |   $0.2699 |        15.0 |
 
 _Note: The local cost estimate uses a [Strix Halo rental reference](https://gpurack.net/pricing) and the active request time_
 

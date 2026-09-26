@@ -455,3 +455,117 @@ standard      68.1          53.6         48.0        50.8   76.6  48.4     0.052
 hard          33.3           0.0         14.3         7.1   59.7  21.7     0.4089          0.0
 public        52.8          33.5         14.3        23.9   64.5  29.5     0.2230          4.2
 ```
+
+The `qwen3.8` low score is due to incorrect handling on probabilities on hard questions, it returns tokens like newline and `<think>` instead of the choice numbers. I will try to fix this in the next steps.
+
+# Step 11: Formating the prompt correctly
+
+So far, I was sending the following raw prompt to the model:
+
+```
+{state}
+
+---
+
+Question: {instructions}
+
+Choices:
+  1. {choice 1 description}
+  2. {choice 2 description}
+
+Number of the correct choice:
+```
+
+The idea was that the model would autocomplete the text with the number of the correct answer and return probabilities of all answer numbers (I used the grammar to restrict the allowed output to the numbered choices).
+
+This works but is not ideal models that were fine-tuned for chat and instructions execution rather then raw autocomplete, they expect the prompt to follow a chat format with `system`, `user` and `assistant` messages.
+The `llama` API has an endpoint `/apply-template` that takes the list of messages and returns the formated prompt for the running model.
+So I can use it to generate the prompt to send to `/completion`.
+```js
+[
+  { role: 'system', content: 'Output the number of the correct choice.' },
+  { role: 'user', content: /* The prompt above */ },
+]
+```
+
+I should also set `enable_thinking: false` in `chat_template_kwargs` so the model doesn't return a `<think>` token.
+
+With these changes, here are the new scores
+
+**minicpm5-2b-q8**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy          97.9          97.1         96.3        96.7   90.7  76.2     0.0062         89.2
+standard      68.1          53.6         63.2        58.4   90.7  77.0     0.0059         68.4
+hard          45.9          18.6         24.7        21.6   79.4  53.4     0.0357          4.4
+public        63.6          47.5         24.7        36.1   82.3  60.8     0.0203         40.0
+```
+
+**qwen3.6-35b-a3b-q6**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy         100.0         100.0         99.7        99.9   81.1  54.6     0.0326         78.9
+standard      91.7          87.9         92.9        90.4   81.0  54.2     0.0337         75.6
+hard          71.2          56.6         78.0        67.3   67.8  34.7     0.1498         26.1
+public        83.5          77.2         78.0        77.6   72.0  41.5     0.0893         43.2
+```
+
+**qwen3.8-27b-q6**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy         100.0         100.0         99.6        99.8   76.8  46.5     0.0609         63.3
+standard      95.8          94.0         88.9        91.4   76.7  47.5     0.0563         64.4
+hard          62.2          43.0         49.4        46.2   59.8  21.7     0.4077          5.2
+public        80.5          73.9         49.4        61.6   64.7  29.4     0.2261         16.6
+```
+
+# Step 12: Fixing missing token probs and adding examples
+
+Right now I'm using the grammar to limit the generated tokens to only the numbers of the answers but the probabilities are not limited to these tokens so sometimes the model gives probabilities for other tokens and the missing answer ends up with zero probability. One way to fix this is to increase the number of probabilities returned by the llama server.
+
+In addition to that, and in order to help the model to generate the correct format, I added two examples before asking the question:
+```js
+[
+  { role: 'system', content: 'Output the number of the correct choice.' },
+  { role: 'user', content: 'example question 1' },
+  { role: 'assistant', content: 'example answer 1' },
+  { role: 'user', content: 'example question 2' },
+  { role: 'assistant', content: 'example answer 2' },
+  { role: 'user', content: /* The prompt above */ },
+]
+```
+
+This improved the accuracy a little:
+
+**minicpm5-2b-q8**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy          97.9          97.1         96.6        96.9   90.7  77.1     0.0058         89.6
+standard      66.7          51.6         48.3        50.0   90.6  76.6     0.0060         62.3
+hard          48.6          22.6         23.5        23.0   79.2  53.0     0.0370          6.9
+public        64.5          48.4         23.5        35.9   82.0  60.4     0.0208         40.7
+```
+
+**qwen3.6-35b-a3b-q6**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy         100.0         100.0         99.9       100.0   79.3  51.3     0.0420         76.8
+standard      94.4          91.9         94.0        93.0   79.3  51.1     0.0427         74.5
+hard          67.6          51.1         67.4        59.3   67.3  33.8     0.1613         23.1
+public        82.7          76.5         67.4        72.0   71.0  40.1     0.0995         38.3
+```
+
+**qwen3.8-27b-q6**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy         100.0         100.0         99.9       100.0   71.9  39.6     0.1034         42.3
+standard      97.2          96.0         93.3        94.6   70.9  38.7     0.1106         39.2
+hard          72.1          57.9         79.0        68.4   59.0  20.5     0.4453          7.1
+public        85.7          80.9         79.0        79.9   62.6  27.1     0.2699         15.0
+```
