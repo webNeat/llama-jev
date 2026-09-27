@@ -569,3 +569,54 @@ standard      97.2          96.0         93.3        94.6   70.9  38.7     0.110
 hard          72.1          57.9         79.0        68.4   59.0  20.5     0.4453          7.1
 public        85.7          80.9         79.0        79.9   62.6  27.1     0.2699         15.0
 ```
+
+# Step 13: Better estimation for the cost
+
+So far, I was using the monthly rental price of a server with Strix halo GPU which gave me a reference cost of $0.35/hour. But looking at cloud GPU providers like [vast.ai](https://cloud.vast.ai/) I found GPUs with comparable performance to my GPU under $0.1/hour, the only caveat is that VRAM is 16GB. So if I limit the comparaison to models under 8b, I can consider the effective cost per hour to be $0.1
+
+So I updated `bench.py` and rerun the benchmark on `minicpm5-2b-q8`
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy          97.9          97.1         96.7        96.9   90.6  92.8     0.0017         94.2
+standard      66.7          51.6         48.0        49.8   90.6  92.4     0.0018         64.5
+hard          49.5          24.0         31.9        28.0   79.2  68.9     0.0109          9.2
+public        64.9          48.9         31.9        40.4   82.1  76.3     0.0062         49.8
+```
+
+The estimated score went from `40.7` to `49.8`, because the cost no longer reduces the score.
+
+Now, I can no longer use the big qwen models due to the 16GB constraint, so I looked for other small models:
+
+**granite4.2-3b-q6**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy         100.0         100.0         98.4        99.2   88.4  85.6     0.0030         92.7
+standard      77.8          67.7         68.5        68.1   88.4  86.6     0.0028         76.6
+hard          41.4          11.8         20.6        16.2   75.3  62.5     0.0178          1.4
+public        64.9          50.7         20.6        35.6   78.8  70.0     0.0100         42.0
+```
+
+**lfm2-2.6b-q8**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy         100.0         100.0         95.9        97.9   88.1  85.0     0.0032         91.9
+standard      72.2          59.7         51.0        55.3   88.4  85.4     0.0031         67.3
+hard          45.9          18.6         16.4        17.5   77.4  66.2     0.0134          3.9
+public        65.4          50.4         16.4        33.4   80.4  72.9     0.0080         37.4
+```
+
+**ministral3-3b-q8**
+```
+Dataset   Accuracy  Intelligence  Calibration  Capability  Speed  Cost  $/1k est.  Score proxy
+--------  --------  ------------  -----------  ----------  -----  ----  ---------  -----------
+easy          97.9          97.1         96.2        96.6   90.6  91.2     0.0020         93.7
+standard      84.7          77.8         70.6        74.2   89.7  90.2     0.0021         81.2
+hard          46.8          19.9         62.5        41.2   75.2  62.3     0.0181          6.7
+public        69.3          57.4         62.5        60.0   79.5  70.3     0.0098         66.4
+```
+
+**ministral3-3b-q8** is the champion here, even though its acurracy is comparable to other models, the good calibration scores increased its global score noticeably.
+

@@ -8,7 +8,7 @@ root_dir = Path(__file__).resolve().parent
 jevbench_dir = root_dir / 'bench' / 'jevbench'
 endpoint_url = 'http://localhost:3000'
 model_name = 'llama-jev'
-gpu_hourly_usd = 249 / 730  # Ryzen AI Max+ 395 rental reference: https://gpurack.net/pricing
+gpu_hourly_usd = 0.1 # cloud price of RTX A4000 which is comparable to my Srix halo prefill speed
 endpoint_kind = 'gpu'
 
 def main():
